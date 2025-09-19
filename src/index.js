@@ -1,4 +1,6 @@
-import initialPageLoad from "./pageLoad";
-import * as css from "./styles.css";
+import './styles/main.css';
+import './styles/sidebar.css';
 
-initialPageLoad();
+import sidebar from './modules/sidebar';
+
+sidebar();
