@@ -52,7 +52,7 @@ function sidebar() {
         {name: "Today", icon: "fa-sun", iconThickness: "fa-regular", counter: 0},
         {name: "Tomorrow", icon: "fa-moon", iconThickness: "fa-regular", counter: 0},
         {name: "This Week", icon: "fa-satellite-dish", iconThickness: "fa-solid", counter: 0},
-        {name: "completed", icon: "fa-medal", iconThickness: "fa-solid", counter: 0},
+        {name: "Completed", icon: "fa-medal", iconThickness: "fa-solid", counter: 0},
     ];
 
     taskSections.forEach(section => {
@@ -73,15 +73,20 @@ function sidebar() {
         sectionCounter.classList.add("section-counter");
         sectionCounter.innerHTML = section.counter;
 
+        
         leftGroup.appendChild(sectionIcon);
         leftGroup.appendChild(sectionTitle);
         sectionDiv.appendChild(leftGroup);
         sectionDiv.appendChild(sectionCounter);
         sectionDiv.classList.add("section-div");
-
+        
         tasksContainerDiv.appendChild(sectionDiv);
         addSidebarClickLogic(sectionDiv);
-    });
+    
+        sectionDiv.addEventListener("click", () => {
+        updateGroupTitle(section.name);
+         });
+        });
 
     sidebarContainerDiv.appendChild(tasksContainerDiv);
     
@@ -123,6 +128,10 @@ function sidebar() {
 
         projectsContainerDiv.appendChild(sectionDiv);
         addSidebarClickLogic(sectionDiv);
+
+        sectionDiv.addEventListener("click", () => {
+            updateGroupTitle(section.name);
+        });
     });
         sidebarContainerDiv.appendChild(projectsContainerDiv);
 
