@@ -1,3 +1,17 @@
+import { updateGroupTitle } from "./todoList";
+//  const sidebarDiv = document.createElement("div");
+    // sidebarDiv.id = "sidebar";
+
+    // const project1 = document.createElement("div");
+    // project1.textContent = "Project A";
+    // project1.classList.add("sidebar-item");
+    // sidebarDiv.appendChild(project1);
+
+    // project1.addEventListener("click", () => {
+    //     updateGroupTitle("Project A");
+    // });
+
+    // document.getElementById("app").appendChild(sidebarDiv);
 function sidebar() {
     const appDiv = document.getElementById("app");
 
