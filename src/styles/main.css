@@ -4,8 +4,67 @@
     margin: 0px;
 }
 
+:root {
+    --primary-color: #212121;
+    --secondary-color: #2F2F2F;
+    --tertiary-color: #494949;
+    --sidebar-color: #171717;
+    --primary-text: #B4B4B4;
+    --secondary-text: #ECECEC;
+    --font-size-base: 12px;
+
+    --margin-xxs: .25rem;
+    --margin-xs: .5rem;
+    --margin-s: .75rem;
+    --margin-m: 1rem;
+    --margin-l: 1.25rem;
+    --margin-xl: 1.75rem;
+    --margin-xxl: 2.5rem;
+    --margin-xxxl: 5rem;
+
+    --padding-xxs: .25rem;
+    --padding-xs: .5rem;
+    --padding-s: .75rem;
+    --padding-m: 1rem;
+    --padding-l: 1.25rem;
+    --padding-xl: 1.75rem;
+    --padding-xxl: 2.5rem;
+    --padding-xxxl: 5rem;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
+}
+
+#app {
+    background-color: var(--primary-color);
+    display: flex;
+    height: 100vh;
+}
+
+.app-icon {
+    font-size: 24px;
+}
+
+#app-header {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    color: var(--primary-text);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#main-content {
+    flex: 1;
+    color: white;
+    margin-top: var(--margin-xl);
+    margin-left: var(--margin-l);
+}
+
+#sidebar-container:not(.open) ~ #main-content {
+    margin-left: var(--margin-xxxl);
 }
 
 :root {
@@ -19,6 +78,4 @@ body {
 }
 
 
-body {
-    background-color: var(--primary-color);
-}
+
