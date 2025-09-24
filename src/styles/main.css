@@ -1,3 +1,4 @@
+
 * {
     box-sizing: border-box;
     padding: 0px;
@@ -11,6 +12,7 @@
     --sidebar-color: #171717;
     --primary-text: #B4B4B4;
     --secondary-text: #ECECEC;
+    --checkmark-color:#28913a;
     --font-size-base: 12px;
 
     --margin-xxs: .25rem;
@@ -95,10 +97,9 @@ body {
     align-items: center;
     text-align: center;
     background-color: var(--secondary-color);
-    color: var(--primary-text);
+    color: var(--secondary-text);
     width: 150px;
     height: 80px;
-    font-size: 16px;
     border-radius: 10px;
     margin: var(--margin-l) var(--margin-xs);
     
@@ -107,4 +108,73 @@ body {
 
 .counter-number {
     font-size: 24px;
+}
+
+.counter-label {
+    font-size: 12px;
+}
+
+.tasks-div {
+    background-color: var(--secondary-color);
+    width: 650px;
+    height: 40px;
+    border-radius: 10px;
+    margin: var(--margin-s);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.left-task-div {
+    display: flex;
+    align-items: center;
+    margin-left: var(--margin-m);
+}
+
+.task-name-div {
+    margin-left: var(--margin-s);
+}
+
+.date-div {
+    margin-right: var(--margin-m);
+}
+
+.complete-button {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    background: none;
+    border: 1px solid var(--primary-text); 
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.complete-button:hover {
+    background-color: var(--primary-text);
+}
+
+.complete-button.completed{
+    background-color: var(--checkmark-color);
+}
+
+.add-task-button {
+    width: 132px;
+    height: 36px;
+    border-radius: 10px;
+    border: 2px solid var(--secondary-color);
+    box-shadow: none;
+    background: var(--primary-color);
+    cursor: pointer;
+    color: var(--secondary-text);
+    font-size: 12px;
+    margin-top: var(--margin-l);
+}
+
+.add-task-button:hover {
+    background-color: var(--secondary-color);
+}
+
+.checkmark-icon {
+    color: var(--secondary-text);
 }

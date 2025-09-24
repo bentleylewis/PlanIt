@@ -1,0 +1,116 @@
+* {
+    box-sizing: border-box;
+    padding: 0px;
+    margin: 0px;
+}
+
+:root {
+    --primary-color: #212121;
+    --secondary-color: #2F2F2F;
+    --tertiary-color: #494949;
+    --sidebar-color: #171717;
+    --primary-text: #B4B4B4;
+    --secondary-text: #ECECEC;
+    --font-size-base: 12px;
+
+    --margin-xxs: .25rem;
+    --margin-xs: .5rem;
+    --margin-s: .75rem;
+    --margin-m: 1rem;
+    --margin-l: 1.25rem;
+    --margin-xl: 1.75rem;
+    --margin-xxl: 2.5rem;
+    --margin-xxxl: 5rem;
+
+    --padding-xxs: .25rem;
+    --padding-xs: .5rem;
+    --padding-s: .75rem;
+    --padding-m: 1rem;
+    --padding-l: 1.25rem;
+    --padding-xl: 1.75rem;
+    --padding-xxl: 2.5rem;
+    --padding-xxxl: 5rem;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Modal overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Modal content */
+#task-form {
+    background: var(--primary-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    padding: 2rem 2.5rem;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    color: var(--secondary-text);
+    font-size: 1rem;
+}
+
+.header-div {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--secondary-text);
+    text-align: center;
+}
+
+#task-form label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+#task-form input,
+#task-form select,
+#task-form textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--tertiary-color);
+    background: var(--primary-color);
+    color: var(--secondary-text);
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+#task-form button[type="submit"] {
+    background: var(--checkmark-color);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#task-form button[type="submit"]:hover {
+    background: #1e7e34;
+}
+
+#task-form .close-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--secondary-text);
+    cursor: pointer;
+}

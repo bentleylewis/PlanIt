@@ -27,6 +27,7 @@
     "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^7.0.1"
+    "@fortawesome/fontawesome-free": "^7.0.1",
+    "date-fns": "^4.1.0"
   }
 }
