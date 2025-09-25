@@ -1,15 +1,57 @@
 import { updateGroupTitle } from "./todoList";
 import renderTodoList from "./todoList";
 import { getProjects, getTaskSections, addSidebarClickLogic, Project, addProject } from "./todoLogic";
-import { getTodayTasks, getTomorrowTasks, getWeekTasks } from "./todoLogic";
+import { getTodayTasks, getTomorrowTasks, getWeekTasks, getCompletedTasks, getTasks, getCompletedTasks as getCompleted, getTasksByProject } from "./todoLogic";
+
+// keep tabFunctions and a counter-elements map at module scope so they can be updated later
+const tabFunctions = {
+    "Today": getTodayTasks,
+    "Tomorrow": getTomorrowTasks,
+    "This Week": getWeekTasks,
+    "Completed": getCompletedTasks
+};
+
+const tabCountersMap = {}; // tabName -> DOM element
+const projectCountersMap = {}; // projectName -> DOM element
+
+export function updateTabCounters() {
+    // Explicitly update the four known tabs to avoid any mapping/closure issues
+    const mapping = {
+        Today: getTodayTasks,
+        Tomorrow: getTomorrowTasks,
+        'This Week': getWeekTasks,
+        Completed: getCompletedTasks,
+    };
+
+    Object.entries(mapping).forEach(([tabName, fn]) => {
+        const el = tabCountersMap[tabName];
+        if (!el) return;
+        try {
+            el.textContent = fn().length;
+        } catch (e) {
+            // fallback: zero
+            el.textContent = '0';
+        }
+    });
+}
+
+export function updateProjectCounters() {
+    // recompute completed/total for each project and update stored DOM elements
+    Object.entries(projectCountersMap).forEach(([projectName, el]) => {
+        if (!el) return;
+        try {
+            const pending = getTasks().filter(t => t.project === projectName).length;
+            const completedInProject = getCompleted().filter(t => t.project === projectName).length;
+            el.textContent = `${completedInProject}/${completedInProject + pending}`;
+        } catch (e) {
+            el.textContent = '0';
+        }
+    });
+}
 
 function sidebar() {
 
-    const tabFunctions = {
-      "Today": getTodayTasks,
-      "Tomorrow": getTomorrowTasks,
-      "This Week": getWeekTasks,
-    }
+        // tabFunctions is defined in module scope
 
     const appDiv = document.getElementById("app");
 
@@ -63,9 +105,11 @@ function sidebar() {
         sectionTitle.classList.add("section-title");
         sectionTitle.innerHTML = tabName;
 
-        const sectionCounter = document.createElement("div");
-        sectionCounter.classList.add("section-counter");
-        sectionCounter.textContent = filterFn().length;
+    const sectionCounter = document.createElement("div");
+    sectionCounter.classList.add("section-counter");
+    sectionCounter.textContent = filterFn().length;
+    // store reference so counters can be updated later
+    tabCountersMap[tabName] = sectionCounter;
 
         
         leftGroup.appendChild(sectionIcon);
@@ -79,7 +123,7 @@ function sidebar() {
     
         sectionDiv.addEventListener("click", () => {
         updateGroupTitle(tabName);
-        renderTodoList(filterFn);
+        renderTodoList(filterFn, tabName);
          });
         });
 
@@ -114,7 +158,16 @@ function renderProjectsSection() {
 
         const sectionCounter = document.createElement("div");
         sectionCounter.classList.add("section-counter");
-        sectionCounter.innerHTML = section.counter;
+        // compute completed/total per project
+        try {
+            const pending = getTasks().filter(t => t.project === section.name).length;
+            const completedInProject = getCompleted().filter(t => t.project === section.name).length;
+            sectionCounter.innerHTML = `${completedInProject}/${completedInProject + pending}`;
+        } catch (e) {
+            sectionCounter.innerHTML = section.counter;
+        }
+        // store for later updates
+        projectCountersMap[section.name] = sectionCounter;
         
         leftGroup.appendChild(sectionIcon);
         leftGroup.appendChild(sectionTitle);
@@ -125,6 +178,8 @@ function renderProjectsSection() {
         addSidebarClickLogic(sectionDiv);
         sectionDiv.addEventListener("click", () => {
             updateGroupTitle(section.name);
+            // render tasks for this project
+            renderTodoList(() => getTasksByProject(section.name), section.name);
         });
     });
     projectsContainerDiv.appendChild(createAddProjectButton());

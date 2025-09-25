@@ -178,3 +178,14 @@ body {
 .checkmark-icon {
     color: var(--secondary-text);
 }
+
+.tasks-div.completed {
+  text-decoration: line-through;
+  opacity: 0.75;
+}
+
+.complete-button.disabled,
+.tasks-div.completed .complete-button {
+  pointer-events: none;
+  opacity: 0.5;
+}

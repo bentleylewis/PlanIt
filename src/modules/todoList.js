@@ -1,4 +1,6 @@
-import { getTasks, getCompletedTasks, addTask, completeTask, getTodayTasks } from './todoLogic.js';
+import { getTasks, getCompletedTasks, addTask, completeTaskById, getTodayTasks } from './todoLogic.js';
+import { isToday, isTomorrow, isThisWeek, parseISO } from 'date-fns';
+import { updateTabCounters, updateProjectCounters } from './sidebar';
 import renderForm from "./formModal";
 
 let groupTitle;
@@ -7,10 +9,12 @@ export function updateGroupTitle(title) {
     if (groupTitle) groupTitle.textContent = title;
 }
 
-function renderTodoList(filterFn = getTodayTasks) {
+function renderTodoList(filterFn = null, title= "Today") {
     const allTasks = getTasks();
     const tasks = filterFn ? filterFn() : getTodayTasks();
     const completed = getCompletedTasks();
+
+    const isCompletedView = filterFn === getCompletedTasks;
 
      const appDiv = document.getElementById("app");
     // Remove previous main-content if it exists
@@ -41,6 +45,7 @@ function renderTodoList(filterFn = getTodayTasks) {
     groupTitle.classList.add("group-title");
     bodyContainer.appendChild(groupTitle);
     groupTitle.textContent = "Today";
+    groupTitle.textContent = title;
 
     mainContent.appendChild(bodyContainer);
 
@@ -61,14 +66,41 @@ function renderTodoList(filterFn = getTodayTasks) {
 
     tasksCounter.appendChild(pendingNumber);
     tasksCounter.appendChild(pendingLabel);
-    counterContainer.appendChild(tasksCounter);
 
     const completedCounter = document.createElement("div");
     completedCounter.classList.add("counter");
 
     const completedNumber = document.createElement("span");
     completedNumber.classList.add("counter-number");
-    completedNumber.textContent = completed.length.toString();
+    // compute completed count relevant to the current view
+    let completedForView = 0;
+    if (isCompletedView) {
+        completedForView = completed.length;
+    } else if (title !== 'Today' && title !== 'Tomorrow' && title !== 'This Week') {
+        // treat the title as a project name when it's not a known timeframe
+        try {
+            completedForView = completed.filter(task => task.project === title).length;
+        } catch (e) {
+            completedForView = 0;
+        }
+    } else {
+        try {
+            completedForView = completed.filter(task => {
+                try {
+                    const d = parseISO(task.date);
+                    if (title === 'Today') return isToday(d);
+                    if (title === 'Tomorrow') return isTomorrow(d);
+                    if (title === 'This Week') return isThisWeek(d);
+                    return false;
+                } catch (e) {
+                    return false;
+                }
+            }).length;
+        } catch (e) {
+            completedForView = 0;
+        }
+    }
+    completedNumber.textContent = completedForView.toString();
 
     const completedLabel = document.createElement("span");
     completedLabel.classList.add("counter-label");
@@ -76,6 +108,10 @@ function renderTodoList(filterFn = getTodayTasks) {
 
     completedCounter.appendChild(completedNumber);
     completedCounter.appendChild(completedLabel);
+    // Append counters: show tasks counter before completed counter when not viewing Completed
+    if (!isCompletedView) {
+        counterContainer.appendChild(tasksCounter);
+    }
     counterContainer.appendChild(completedCounter);
 
 
@@ -99,8 +135,14 @@ function renderTodoList(filterFn = getTodayTasks) {
 
         const completeButton = document.createElement("button");
         completeButton.classList.add("complete-button");
-        leftTaskDiv.appendChild(completeButton);
 
+        if (isCompletedView) {
+            // visually mark and disable the control
+            taskDiv.classList.add("completed");
+            completeButton.disabled = true;
+            completeButton.classList.add("disabled");
+    } else {
+    leftTaskDiv.appendChild(completeButton);
         completeButton.addEventListener("click", () => {
             completeButton.classList.add("completed");
 
@@ -109,12 +151,14 @@ function renderTodoList(filterFn = getTodayTasks) {
             completeButton.appendChild(checkIcon);
 
             setTimeout(() => {
-                completeTask();
-                renderTodoList();
+                completeTaskById(task.id);
+                // refresh sidebar counters after mutating tasks
+                if (typeof updateTabCounters === 'function') updateTabCounters();
+                    if (typeof updateProjectCounters === 'function') updateProjectCounters();
+                renderTodoList(filterFn, title);
             }, 250);
         });
-
-
+    }
         const taskNameDiv = document.createElement("div");
         taskNameDiv.classList.add("task-name-div");
         taskNameDiv.textContent = task.title;

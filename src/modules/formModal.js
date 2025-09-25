@@ -1,5 +1,7 @@
 import renderTodoList from './todoList';
-import { Task, addTask, getProjects } from './todoLogic';
+import { Task, addTask, getProjects, getTasksByProject, getTodayTasks, getTomorrowTasks, getWeekTasks, getCompletedTasks } from './todoLogic';
+import { updateTabCounters, updateProjectCounters } from './sidebar';
+import { isToday, isTomorrow, isThisWeek, parseISO } from 'date-fns';
 
 function renderForm() {
   const appDiv = document.getElementById("app");
@@ -117,8 +119,59 @@ function renderForm() {
     if (title && description && priority && date && project) {
       const newTask = new Task(title, description, priority, date, project);
       addTask(newTask);
-      overlay.remove(); 
-      renderTodoList();
+      if (typeof updateTabCounters === 'function') updateTabCounters();
+      if (typeof updateProjectCounters === 'function') updateProjectCounters();
+      overlay.remove();
+      // re-render current view so the new task appears immediately where user expects
+      const currentGroupEl = document.querySelector('.group-title');
+      const currentGroup = currentGroupEl ? currentGroupEl.textContent.trim() : null;
+      if (currentGroup) {
+        if (currentGroup === newTask.project) {
+          renderTodoList(() => getTasksByProject(newTask.project), newTask.project);
+        } else if (currentGroup === 'Today') {
+          renderTodoList(getTodayTasks, 'Today');
+        } else if (currentGroup === 'Tomorrow') {
+          renderTodoList(getTomorrowTasks, 'Tomorrow');
+        } else if (currentGroup === 'This Week') {
+          renderTodoList(getWeekTasks, 'This Week');
+        } else if (currentGroup === 'Completed') {
+          renderTodoList(getCompletedTasks, 'Completed');
+        } else {
+          renderTodoList();
+        }
+      } else {
+        renderTodoList();
+      }
+      // refresh counters after rendering
+      if (typeof updateTabCounters === 'function') updateTabCounters();
+      if (typeof updateProjectCounters === 'function') updateProjectCounters();
+        // also update the specific sidebar tab counter for the new task's interval
+        try {
+          const taskDate = parseISO(date);
+          let tabName = null;
+          if (isToday(taskDate)) tabName = 'Today';
+          else if (isTomorrow(taskDate)) tabName = 'Tomorrow';
+          else if (isThisWeek(taskDate)) tabName = 'This Week';
+
+          if (tabName) {
+            const sidebar = document.getElementById('sidebar-container');
+            if (sidebar) {
+              const sections = sidebar.querySelectorAll('.section-div');
+              sections.forEach(sec => {
+                const titleEl = sec.querySelector('.section-title');
+                const counterEl = sec.querySelector('.section-counter');
+                if (titleEl && counterEl && titleEl.textContent.trim() === tabName) {
+                  // update to the latest count using direct functions
+                  if (tabName === 'Today') counterEl.textContent = getTodayTasks().length;
+                  else if (tabName === 'Tomorrow') counterEl.textContent = getTomorrowTasks().length;
+                  else if (tabName === 'This Week') counterEl.textContent = getWeekTasks().length;
+                }
+              });
+            }
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
     }
   }
 

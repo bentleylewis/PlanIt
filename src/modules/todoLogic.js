@@ -25,7 +25,14 @@ let fillerTasks = [
         { title: "Finish project", date: "2025-09-24" },
 ];
 
+let completedTasks = [];
 
+function ensureTaskIds() {
+  fillerTasks.forEach(task => {
+    if(!task.id) task.id = Date.now() + Math.floor(Math.random() * 1000);
+  });
+}
+ensureTaskIds();
 
   const taskSections = [
         {name: "Today", icon: "fa-sun", iconThickness: "fa-regular", counter: 0},
@@ -34,11 +41,11 @@ let fillerTasks = [
         {name: "Completed", icon: "fa-medal", iconThickness: "fa-solid", counter: 0},
     ];
 
+
+    
  let projectLabels = [
         {name: "General", icon: "fa-space-awesome", iconThickness: "fa-brands", counter: 0},
  ];
-
-let completedTasks = [];
 
 export function getTaskSections() {
   return taskSections;
@@ -52,6 +59,10 @@ export function getTasks() {
   return fillerTasks;
 }
 
+export function getTasksByProject(projectName) {
+  return fillerTasks.filter(t => t.project === projectName);
+}
+
 export function getCompletedTasks() {
   return completedTasks;
 }
@@ -63,13 +74,17 @@ export function addTask(task) {
 export function addProject(project) {
   projectLabels.push(project);
 }
-export function completeTask(index) {
-  completedTasks.push(fillerTasks[index]);
-  fillerTasks.splice(index, 1);
+
+export function completeTaskById(taskId) {
+  const idx = fillerTasks.findIndex(t => t.id === taskId);
+  if (idx === -1) return false;
+  const [task] = fillerTasks.splice(idx, 1);
+  completedTasks.push(task);
+  return true;
 }
 
-
 export function Task(title, description, priority, date, project) {
+    this.id = Date.now();
     this.title = title;
     this.description = description;
     this.priority = priority;
