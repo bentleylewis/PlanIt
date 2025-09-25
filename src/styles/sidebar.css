@@ -100,9 +100,15 @@
     font-size: 12px;
 }
 
-.project-container :hover {
+
+.project-div:hover {
     cursor: pointer;
     background-color: var(--primary-color);
+}
+
+.add-project-input-box:hover {
+    background-color: var(--sidebar-color);
+    cursor: default;
 }
 
 .section-div .section-icon {
@@ -139,11 +145,11 @@
 }
 
 #sidebar-toggle:hover {
-  background-color: var(--primary-color); /* subtle hover feedback */
+  background-color: var(--primary-color); 
 }
 
 #sidebar-toggle:active {
-  transform: scale(0.95); /* slight press animation */
+  transform: scale(0.95); 
 }
 
 #sidebar-toggle.toggle-active {
@@ -152,4 +158,56 @@
 
 .spacer-div {
     height: 8%;
+}
+
+/* Add Project Modal Styles */
+.add-project-input-box {
+    margin: var(--margin-s);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--sidebar-color);
+}
+
+.add-project-div:hover {
+    background-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.add-project-input {
+    margin: var(--margin-xxs) var(--margin-s);
+    padding: var(--padding-xxs) var(--padding-l);
+    border-radius: 10px;
+    height: 32px;
+}
+
+.add-project-btn-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: var(--margin-xxs) var(--margin-s) var(--margin-xxs)
+    var(--margin-s);
+}
+
+.add-project-confirm-btn {
+    background: #27ae60;
+    color: var(--secondary-text);
+    border: none;
+    border-radius: 6px;
+    padding: var(--margin-xxs);
+    cursor: pointer;
+    width: 100px;
+    font-weight: 500;
+    margin-left: var(--margin-l);
+}
+
+.add-project-cancel-btn {
+    background: #ff6161;
+    color: var(--secondary-text);
+    border: none;
+    border-radius: 6px;
+    padding: var(--margin-xxs);
+    cursor: pointer;
+    width: 100px;
+    font-weight: 500;
 }

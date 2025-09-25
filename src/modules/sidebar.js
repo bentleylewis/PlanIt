@@ -1,18 +1,58 @@
 import { updateGroupTitle } from "./todoList";
-//  const sidebarDiv = document.createElement("div");
-    // sidebarDiv.id = "sidebar";
+import renderTodoList from "./todoList";
+import { getProjects, getTaskSections, addSidebarClickLogic, Project, addProject } from "./todoLogic";
+import { getTodayTasks, getTomorrowTasks, getWeekTasks, getCompletedTasks, getTasks, getCompletedTasks as getCompleted, getTasksByProject } from "./todoLogic";
 
-    // const project1 = document.createElement("div");
-    // project1.textContent = "Project A";
-    // project1.classList.add("sidebar-item");
-    // sidebarDiv.appendChild(project1);
+// keep tabFunctions and a counter-elements map at module scope so they can be updated later
+const tabFunctions = {
+    "Today": getTodayTasks,
+    "Tomorrow": getTomorrowTasks,
+    "This Week": getWeekTasks,
+    "Completed": getCompletedTasks
+};
 
-    // project1.addEventListener("click", () => {
-    //     updateGroupTitle("Project A");
-    // });
+const tabCountersMap = {}; // tabName -> DOM element
+const projectCountersMap = {}; // projectName -> DOM element
 
-    // document.getElementById("app").appendChild(sidebarDiv);
+export function updateTabCounters() {
+    // Explicitly update the four known tabs to avoid any mapping/closure issues
+    const mapping = {
+        Today: getTodayTasks,
+        Tomorrow: getTomorrowTasks,
+        'This Week': getWeekTasks,
+        Completed: getCompletedTasks,
+    };
+
+    Object.entries(mapping).forEach(([tabName, fn]) => {
+        const el = tabCountersMap[tabName];
+        if (!el) return;
+        try {
+            el.textContent = fn().length;
+        } catch (e) {
+            // fallback: zero
+            el.textContent = '0';
+        }
+    });
+}
+
+export function updateProjectCounters() {
+    // recompute completed/total for each project and update stored DOM elements
+    Object.entries(projectCountersMap).forEach(([projectName, el]) => {
+        if (!el) return;
+        try {
+            const pending = getTasks().filter(t => t.project === projectName).length;
+            const completedInProject = getCompleted().filter(t => t.project === projectName).length;
+            el.textContent = `${completedInProject}/${completedInProject + pending}`;
+        } catch (e) {
+            el.textContent = '0';
+        }
+    });
+}
+
 function sidebar() {
+
+        // tabFunctions is defined in module scope
+
     const appDiv = document.getElementById("app");
 
     const sidebarContainerDiv = document.createElement("div");
@@ -43,19 +83,13 @@ function sidebar() {
     tasksContainerDiv.classList.add("tasks-container");
 
     const plansTitle = document.createElement("div");
-    plansTitle.innerHTML = "Stars";
+    plansTitle.innerHTML = "Tasks";
     sidebarContainerDiv.appendChild(plansTitle);
     plansTitle.classList.add("sidebar-headers");
 
-    
-    const taskSections = [
-        {name: "Today", icon: "fa-sun", iconThickness: "fa-regular", counter: 0},
-        {name: "Tomorrow", icon: "fa-moon", iconThickness: "fa-regular", counter: 0},
-        {name: "This Week", icon: "fa-satellite-dish", iconThickness: "fa-solid", counter: 0},
-        {name: "Completed", icon: "fa-medal", iconThickness: "fa-solid", counter: 0},
-    ];
+     
 
-    taskSections.forEach(section => {
+    Object.entries(tabFunctions).forEach(([tabName, filterFn]) => {
         const sectionDiv = document.createElement("div");
         sectionDiv.classList.add("nav-tasks");
         
@@ -63,15 +97,19 @@ function sidebar() {
         leftGroup.classList.add("left-group");
 
         const sectionIcon = document.createElement("i");
-        sectionIcon.classList.add(section.iconThickness, section.icon, "section-icon");
+        if (tabName === "Today") sectionIcon.classList.add("fa-solid", "fa-calendar-day", "section-icon");
+        else if (tabName === "Tomorrow") sectionIcon.classList.add("fa-solid", "fa-calendar-plus", "section-icon");
+        else if (tabName === "This Week") sectionIcon.classList.add("fa-solid", "fa-calendar-week", "section-icon");
 
         const sectionTitle = document.createElement("div");
         sectionTitle.classList.add("section-title");
-        sectionTitle.innerHTML = section.name;
+        sectionTitle.innerHTML = tabName;
 
-        const sectionCounter = document.createElement("div");
-        sectionCounter.classList.add("section-counter");
-        sectionCounter.innerHTML = section.counter;
+    const sectionCounter = document.createElement("div");
+    sectionCounter.classList.add("section-counter");
+    sectionCounter.textContent = filterFn().length;
+    // store reference so counters can be updated later
+    tabCountersMap[tabName] = sectionCounter;
 
         
         leftGroup.appendChild(sectionIcon);
@@ -84,68 +122,137 @@ function sidebar() {
         addSidebarClickLogic(sectionDiv);
     
         sectionDiv.addEventListener("click", () => {
-        updateGroupTitle(section.name);
+        updateGroupTitle(tabName);
+        renderTodoList(filterFn, tabName);
          });
         });
 
     sidebarContainerDiv.appendChild(tasksContainerDiv);
     
     const projectsTitle = document.createElement("div");
-    projectsTitle.innerHTML = "Constellations";
+    projectsTitle.innerHTML = "Projects";
     sidebarContainerDiv.appendChild(projectsTitle);
     projectsTitle.classList.add("sidebar-headers");
 
     const projectsContainerDiv = document.createElement("div");
     projectsContainerDiv.classList.add("project-container");
 
-    const projectSections = [
-        {name: "General", icon: "fa-space-awesome", iconThickness: "fa-brands", counter: 0},
-        {name: "Tomorrow", icon: "fa-space-awesome", iconThickness: "fa-brands", counter: 0},
-    ];
+function renderProjectsSection() {
+    projectsContainerDiv.innerHTML = ""; // Clear old projects
+
+    const projectSections = getProjects();
+
     projectSections.forEach(section => {
         const sectionDiv = document.createElement("div");
         sectionDiv.classList.add("project-div");
-        
+
         const leftGroup = document.createElement("div");
         leftGroup.classList.add("left-group");
 
         const sectionIcon = document.createElement("i");
         sectionIcon.classList.add(section.iconThickness, section.icon, "section-icon");
-
+        
         const sectionTitle = document.createElement("div");
         sectionTitle.classList.add("section-title");
         sectionTitle.innerHTML = section.name;
 
         const sectionCounter = document.createElement("div");
         sectionCounter.classList.add("section-counter");
-        sectionCounter.innerHTML = section.counter;
-
+        // compute completed/total per project
+        try {
+            const pending = getTasks().filter(t => t.project === section.name).length;
+            const completedInProject = getCompleted().filter(t => t.project === section.name).length;
+            sectionCounter.innerHTML = `${completedInProject}/${completedInProject + pending}`;
+        } catch (e) {
+            sectionCounter.innerHTML = section.counter;
+        }
+        // store for later updates
+        projectCountersMap[section.name] = sectionCounter;
+        
         leftGroup.appendChild(sectionIcon);
         leftGroup.appendChild(sectionTitle);
         sectionDiv.appendChild(leftGroup);
         sectionDiv.appendChild(sectionCounter);
         sectionDiv.classList.add("section-div");
-
         projectsContainerDiv.appendChild(sectionDiv);
         addSidebarClickLogic(sectionDiv);
-
         sectionDiv.addEventListener("click", () => {
             updateGroupTitle(section.name);
+            // render tasks for this project
+            renderTodoList(() => getTasksByProject(section.name), section.name);
         });
     });
-        sidebarContainerDiv.appendChild(projectsContainerDiv);
-
-    // to populate projectsDiv we would ideally call todoLogic.getProjects() to get an array and populate DOM by looping
-    function addSidebarClickLogic(sectionDiv) {
-        sectionDiv.addEventListener("click", () => {
-            document.querySelectorAll(".section-div").forEach(div => {
-                div.classList.remove("active");
-            });
-
-            sectionDiv.classList.add("active");
-        });
-    }
+    projectsContainerDiv.appendChild(createAddProjectButton());
 }
 
+    // Create and append Add Project button after all project sections
+    function createAddProjectButton() {
+        const addProjectDiv = document.createElement("div");
+        addProjectDiv.classList.add("project-div", "section-div", "add-project-div");
+
+        const leftGroup = document.createElement("div");
+        leftGroup.classList.add("left-group");
+
+        const addProjectIcon = document.createElement("i");
+        addProjectIcon.classList.add("fa-solid", "fa-plus", "section-icon");
+
+        const addProjectTitle = document.createElement("div");
+        addProjectTitle.classList.add("section-title");
+        addProjectTitle.textContent = "Add Project";
+
+        leftGroup.appendChild(addProjectIcon);
+        leftGroup.appendChild(addProjectTitle);
+        addProjectDiv.appendChild(leftGroup);
+
+        addProjectDiv.addEventListener("click", () => {
+            // Replace button with input box
+            const inputDiv = document.createElement("div");
+            inputDiv.classList.add("add-project-input-box");
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.classList.add("add-project-input");
+
+            const btnRow = document.createElement("div");
+            btnRow.classList.add("add-project-btn-row");
+
+            
+            const cancelBtn = document.createElement("button");
+            cancelBtn.textContent = "Cancel";
+            cancelBtn.classList.add("add-project-cancel-btn");
+
+            const confirmBtn = document.createElement("button");
+            confirmBtn.textContent = "Add";
+            confirmBtn.classList.add("add-project-confirm-btn");
+            
+            btnRow.appendChild(cancelBtn);
+            btnRow.appendChild(confirmBtn);
+
+            inputDiv.appendChild(input);
+            inputDiv.appendChild(btnRow);
+
+            addProjectDiv.replaceWith(inputDiv);
+
+            cancelBtn.addEventListener("click", () => {
+                inputDiv.replaceWith(createAddProjectButton());
+            });
+            confirmBtn.addEventListener("click", () => {
+                const newProjectName = input.value.trim();
+                if (newProjectName) {
+                    const newProject = Project(newProjectName);
+                    console.log(newProject);
+                    addProject(newProject);
+                    addProjectDiv.innerHTML = '';
+                    renderProjectsSection();
+                } else {
+                    inputDiv.replaceWith(createAddProjectButton());
+                }
+                });
+        });
+        return addProjectDiv;
+    }
+    sidebarContainerDiv.appendChild(projectsContainerDiv);
+    renderProjectsSection();
+}
 
 export default sidebar;
